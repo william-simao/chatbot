@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>REA - Chat</title>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+	<link href="https://fonts.googleapis.com/css?family=Roboto:300,400,700" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Lato:400,700" rel="stylesheet">
+	<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+	<div class="container">
+  <div class="content-wrapper">
+
+    <div class="scrollable-div fixed-top" style='overflow-y: auto; max-height: 80vh;' id ='scrollable-div'>
+      <div class="container">
+
+
+        <div class="container" id='chat'>
+          <br /><br />
+          <div class='card'>
+            <div class="card-body" style="text-align: left">
+              <p>Oi! Eu sou um chat que utiliza Recursos Educacionais Abertos sobre programação introdutória. Escreva uma mensagem logo abaixo que eu vou buscar na minha base de dados algum recurso para você!</p>
+              <footer class="blockquote-footer">Chat disse isso em: <cite title="Source Title">05/05/2023 - 10:26:46</cite></footer>
+            </div>
+          </div><br/>
+        </div>
+
+
+      </div>
+    </div>
+    <div class="fixed-bottom bg-light p-3">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-12 mx-auto">
+          <label for="message" class="form-label">Envie uma mensagem</label>
+          <textarea class="form-control" rows="3"  id='message'></textarea>
+        </div>
+        </div>
+        <br/>
+        <button type="button" class="btn btn-success" style='width: 100%;' onclick="send()">ENVIAR</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+
+  <script type="text/javascript" src="model1.js"></script>
+  <script type="text/javascript" src="model2.js"></script>
+  <script type="text/javascript" src="modelipavl.js"></script>
+  <script type="text/javascript" src="result.js"></script>
+
+
+  <script type="text/javascript">
+
+    function getDateTime(){
+      const agora = new Date();
+      const date = agora.toLocaleDateString('pt-BR');
+      const time = agora.toLocaleTimeString('pt-BR');
+      return `${date} - ${time}`;
+    }
+
+    function send(){
+      let textarea = document.getElementsByTagName('textarea')[0];          
+      writeChat('Você', textarea.value);
+      autoscroll();
+      const chat = document.getElementById("chat");      
+      model(textarea.value);
+      textarea.value = "";
+      
+    }
+
+    function prequestion(question){
+      document.getElementsByTagName('textarea')[0].value = question;
+      send();
+    }
+
+    function autoscroll(){
+      var container = document.getElementById("scrollable-div");
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function writeChat(who, text){
+      if (who == 'Chat'){
+        if (text == '<ol class="list-group list-group-numbered"></ol>')
+          text = "<h5>Não consegui encontrar nenhum REA para sua pesquisa. Tente adicionar novos termos!</h5>";
+        else
+          text = "<h5>Eu encontrei alguns REA que podem lhe ajudar... Veja: </h5>" + text;
+      }
+      let html = `
+      <div class="card" style='margin: 25px 0; width: 95%; float: ${who == 'Você' ? 'right' : 'left'}; '>
+      <div class="card-body" style='text-align: ${who == 'Você' ? 'right' : 'left'}'>
+      ${text}
+      <footer class="blockquote-footer">${who} disse isso em: <cite title="Source Title">${getDateTime()}</cite></footer>
+      </div>
+      </div></br><br/><span class='clearfix'></span>`
+
+      const chat = document.getElementById("chat");
+      chat.innerHTML += html;
+    }
+
+    function model(text){      
+      text = text.replaceAll("?", "").
+      replaceAll("!", "").
+      replaceAll(".", "").
+      replaceAll(",", "").
+      replaceAll(":", "").
+      replaceAll("'", "").
+      replaceAll('"', "");
+      
+      const stopwords = ['de', 'a', 'o', 'que', 'e', 'do', 'da', 'em', 'um', 'para', 'é', 'com', 'não', 'uma', 'os', 'no', 'se', 'na', 'por', 'mais', 'as', 'dos', 'como', 'mas', 'ao', 'ele', 'das', 'à', 'seu', 'sua', 'ou', 'quando', 'muito', 'nos', 'já', 'eu', 'também', 'só', 'pelo', 'pela', 'até', 'isso', 'ela', 'entre', 'era', 'depois', 'sem', 'mesmo', 'aos', 'ter', 'seus', 'quem', 'nas', 'me', 'esse', 'eles', 'estão', 'você', 'tinha', 'foram', 'essa', 'num', 'nem', 'suas', 'meu', 'minha', 'têm', 'numa', 'pelos', 'elas', 'havia', 'seja', 'qual', 'será', 'nós', 'tenho', 'lhe', 'deles', 'essas', 'esses', 'pelas', 'este', 'fosse', 'dele', 'tu', 'te', 'vocês', 'vos', 'lhes', 'meus', 'minhas', 'teu', 'tua', 'teus', 'tuas', 'nosso', 'nossa', 'nossos', 'nossas', 'dela', 'delas', 'desta', 'deste', 'destes', 'destas', 'aquele', 'aquela', 'aqueles', 'aquelas', 'isto', 'aquilo']
+      const lowerText = text.toLowerCase();
+      const tokens = lowerText.split(' ');
+      const selectedTokens = tokens.filter(token => !stopwords.includes(token));
+
+      //modelIPAVL(selectedTokens);
+      model1 = model01_tokens(selectedTokens);
+      model2 = model02_tokens(selectedTokens);      
+      modelIPAVL = model_IPAVL(selectedTokens, new Set(model1.map(oer => oer.id)));
+
+      console.log('models: (1, 2 e IPAV)', model1, model2, modelIPAVL);
+
+      text = getResult(model1, model2, modelIPAVL);
+
+      writeChat('Chat', text);
+
+    }
+  </script>
+
+  <script>
+    var input = document.getElementById("message");
+    input.addEventListener("keydown", function(event) {
+      if (event.keyCode === 13) 
+        send();
+    });
+  </script>
+</body>
+</html>
